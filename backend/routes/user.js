@@ -5,6 +5,7 @@ const router=express.Router();
 const userSchema=require('./zod')
 const updateUser=require('./zod')
 const User=require('../db')
+const Account=require('../db')
 const jwt=require('jsonwebtoken');
 const JWT_SECRET = require('../config');
 const { authMiddleware } = require('../middlewares/auth');
@@ -38,9 +39,15 @@ router.post('/signup',async function(req,res){
                 message: "User created successfully",
 	            token: token
             })
-        }
 
+            Account.create({
+                userId:dbUser._id,
+                balance:1+Math.random()*10000
+            })
+        }
         
+
+       
     }
 })
 
@@ -83,11 +90,38 @@ router.put('/',authMiddleware,async function(req,res){
             message: "Error while updating information"
         })
     }
-    const updatedValue=await User.updateOne(userInput,{
+    await User.updateOne(userInput,{
         id:req.userId
     })
     res.json({
         message: "Updated successfully"
+    })
+})
+
+router.get('/bulk',function(req,res){
+    const filter=req.query.filter || ""  //to get the names in the query parameter or searches for an empty string in the database
+    const users=User.findOne({   //gives a group of user with similar names
+        $or:[
+            {
+                firstName:{
+                    "$regex":filter
+                },
+
+            },{
+                lastName:{
+                    "$regex":filter
+                }
+            }
+        ]
+    })
+
+    res.json({
+        user: users.map(user => ({
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            _id: user._id
+        }))
     })
 })
 

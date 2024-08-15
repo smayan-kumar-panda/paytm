@@ -32,7 +32,8 @@ const userSchema=new mongoose.Schema({
 
 const accountSchema=new mongoose.Schema({
     userId:{
-        type:mongoose.Mongoose.Schema.Types.ObjectId,
+        type:mongoose.Schema.Types.ObjectId, //only a specific type of id can be put here mongodb syntax
+        ref:'User',  //only a valid user id can be put here
         required:true
     },
     balance:{
